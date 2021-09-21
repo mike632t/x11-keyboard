@@ -20,13 +20,15 @@
  *
  */
 
-#define NAME           "x11-keyboard"
-#define VERSION        "0.1"
-#define BUILD          "0001"
-#define DATE           "20 Sep 21"
-#define AUTHOR         "MT"
+#define  NAME          "x11-keyboard"
+#define  VERSION       "0.1"
+#define  BUILD         "0001"
+#define  DATE          "20 Sep 21"
+#define  AUTHOR        "MT"
 
-#define DEBUG 1        /* Enable/disable debug*/
+#define  DEBUG 1       /* Enable/disable debug*/
+
+#define  ASC_ESC 27    /* ASCII Escape */
 
 #include <X11/Xlib.h>  /* XOpenDisplay(), etc. */
 #include <X11/Xutil.h> /* XSizeHints etc. */
@@ -43,7 +45,6 @@ int main(int argc, char **argv) {
 
    int i_screen; /* Default screen number */
    int i_keysym;
-   char b_abort = False;
 
    h_display = XOpenDisplay(NULL);
    if (h_display) {
@@ -56,7 +57,7 @@ int main(int argc, char **argv) {
          (h_display, x_application_window); /* Show window on display */
       XRaiseWindow(h_display, x_application_window); /* Raise window - ensures expose event is raised? */
       XSync(h_display, False); /* Flush all pending requests to the X server, and wait until they are processed by the X server. */
-      while (!b_abort) {
+      while (i_keysym != ASC_ESC) {
          while (XPending(h_display)) {
             XNextEvent(h_display, &x_event);
             switch (x_event.type) {
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
             case KeyPress:
                i_keysym = XKeycodeToKeysym(h_display, x_event.xkey.keycode, 0);
                switch (i_keysym) {
-               /* Modifier keys */
+               /* Keyboard Modifier keys */
                case XK_Control_L:
                case XK_Control_R:
                case XK_Shift_L:
@@ -77,13 +78,10 @@ int main(int argc, char **argv) {
                case XK_Menu: /* Menu key */
                case XK_Num_Lock:
                case XK_Caps_Lock:
-                  debug(printf("0x%04x 0x%04x (0x%02x)\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym));
-                  i_keysym = 0x00;
+                  i_keysym = 0x00; /* Ignored */
                   break;
                /* ASCII control keys (chosen to map to ASCII - see keysymdef.h) */
                case XK_Escape:
-                  b_abort = True;
-                  break;
                case XK_BackSpace:
                case XK_Tab:
                case XK_Linefeed:
@@ -96,8 +94,78 @@ int main(int argc, char **argv) {
                   i_keysym &= 0x1f;
                   debug(printf("0x%04x 0x%04x (0x%02x)\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym));
                   break;
-               /* ASCII control keys (chosen to map to ASCII - see keysymdef.h) */
-            
+               /* Keypad function keys */
+               case  XK_KP_F1:
+               case  XK_KP_F2:
+               case  XK_KP_F3:
+               case  XK_KP_F4:
+               case  XK_KP_Home:
+               case  XK_KP_Left:
+               case  XK_KP_Up:
+               case  XK_KP_Right:
+               case  XK_KP_Down:
+               case  XK_KP_Page_Up:
+               case  XK_KP_Page_Down:
+               case  XK_KP_End:
+               case  XK_KP_Begin:
+               case  XK_KP_Insert:
+               case  XK_KP_Delete:
+               case  XK_KP_Equal:
+                  if (!(x_event.xkey.state & Mod2Mask) != !(x_event.xkey.state & ShiftMask)) { /* If numlock or shift (but not both) is pressed check number*/
+                     i_keysym = XKeycodeToKeysym(h_display, x_event.xkey.keycode, 1); 
+                     switch (i_keysym) {
+                     case  XK_KP_Tab:
+                     case  XK_KP_Enter:
+                     case  XK_KP_Multiply:
+                     case  XK_KP_Add:
+                     case  XK_KP_Separator:
+                     case  XK_KP_Subtract:
+                     case  XK_KP_Decimal:
+                     case  XK_KP_Divide:
+                     case  XK_KP_0:
+                     case  XK_KP_1:
+                     case  XK_KP_2:
+                     case  XK_KP_3:
+                     case  XK_KP_4:
+                     case  XK_KP_5:
+                     case  XK_KP_6:
+                     case  XK_KP_7:
+                     case  XK_KP_8:
+                     case  XK_KP_9:
+                        i_keysym &= 0x7f;
+                        break;
+                     }
+                  }
+                  else
+                     i_keysym = 0x00; /* Ignored keypad function keys*/
+                     debug(printf("0x%04x 0x%04x (0x%02x) '%c'\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym, i_keysym));
+                  break;
+               /* Keypad numbers chosen to map to ASCII - see keysymdef.h) */case  XK_KP_Space:
+               case  XK_KP_Tab:
+               case  XK_KP_Enter:
+               case  XK_KP_Multiply:
+               case  XK_KP_Add:
+               case  XK_KP_Separator:
+               case  XK_KP_Subtract:
+               case  XK_KP_Decimal:
+               case  XK_KP_Divide:
+                  i_keysym &= 0x7f;
+                  debug(printf("0x%04x 0x%04x (0x%02x) '%c'\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym, i_keysym));
+                  break;                  
+               case  XK_KP_0:
+               case  XK_KP_1:
+               case  XK_KP_2:
+               case  XK_KP_3:
+               case  XK_KP_4:
+               case  XK_KP_5:
+               case  XK_KP_6:
+               case  XK_KP_7:
+               case  XK_KP_8:
+               case  XK_KP_9:
+                  debug(printf("Error !!! \n");
+                  exit(0);
+                  break;                  
+
                default:
                   if (isalpha(i_keysym)) { /* For alpha keys check both caps lock and shift */
                      if (!(x_event.xkey.state & ShiftMask) != !(x_event.xkey.state & LockMask)) 
@@ -120,6 +188,10 @@ int main(int argc, char **argv) {
                      debug(printf("0x%04x 0x%04x (0x%02x) '%c'\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym, i_keysym & 0x7f));
                   }
                }
+               if (isprint(i_keysym))
+                  printf("0x%04x 0x%04x (0x%02x) '%c'\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym, i_keysym);
+               else
+                  printf("0x%04x 0x%04x (0x%02x)\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym);
                break;
             default:
                break;
