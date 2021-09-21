@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
                      }
                   }
                   else
-                     i_keysym = 0x00; /* Ignored keypad function keys*/
+                     i_keysym = 0x00; /* Ignore keypad function keys*/
                      debug(printf("0x%04x 0x%04x (0x%02x) '%c'\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym, i_keysym));
                   break;
                /* Keypad numbers chosen to map to ASCII - see keysymdef.h) */case  XK_KP_Space:
@@ -151,20 +151,7 @@ int main(int argc, char **argv) {
                case  XK_KP_Divide:
                   i_keysym &= 0x7f;
                   debug(printf("0x%04x 0x%04x (0x%02x) '%c'\n", x_event.xkey.state, x_event.xkey.keycode, i_keysym, i_keysym));
-                  break;                  
-               case  XK_KP_0:
-               case  XK_KP_1:
-               case  XK_KP_2:
-               case  XK_KP_3:
-               case  XK_KP_4:
-               case  XK_KP_5:
-               case  XK_KP_6:
-               case  XK_KP_7:
-               case  XK_KP_8:
-               case  XK_KP_9:
-                  debug(printf("Error !!! \n");
-                  exit(0);
-                  break;                  
+                  break;                               
 
                default:
                   if (isalpha(i_keysym)) { /* For alpha keys check both caps lock and shift */
